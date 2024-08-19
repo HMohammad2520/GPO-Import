@@ -13,7 +13,7 @@ if (-not (Get-Module -ListAvailable -Name GroupPolicy)) {
 }
 
 foreach ($BackupDir in $BackupDirs) {
-    echo "Processing backup directory: $($BackupDir.FullName)"
+    Write-Output "Processing backup directory: $($BackupDir.FullName)"
     
     # Path to the Backup.xml file
     $XMLPath = Join-Path -Path $BackupDir.FullName -ChildPath "Backup.xml"
@@ -31,14 +31,14 @@ foreach ($BackupDir in $BackupDirs) {
                 continue
             }
             
-            echo "GPO Name: $GPOName"
+            Write-Output "GPO Name: $GPOName"
             
             # Check if GPO with the name already exists
             $ExistingGPO = Get-GPO -Name $GPOName -ErrorAction SilentlyContinue
             
             if (-not $ExistingGPO) {
                 # Create a new GPO with the specified name if it does not exist
-                $NewGPO = New-GPO -Name $GPOName -Comment "Imported from RSTO" -ErrorAction Stop
+                New-GPO -Name $GPOName -Comment "Imported from RSTO" -ErrorAction Stop
             } else {
                 Write-Host "GPO with name $GPOName already exists. Overwriting settings."
             }
