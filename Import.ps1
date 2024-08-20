@@ -38,7 +38,7 @@ foreach ($BackupDir in $BackupDirs) {
             
             if (-not $ExistingGPO) {
                 # Create a new GPO with the specified name if it does not exist
-                New-GPO -Name $GPOName -Comment "Imported from RSTO" -ErrorAction Stop
+                New-GPO -Name $GPOName -ErrorAction Stop
             } else {
                 Write-Host "GPO with name $GPOName already exists. Overwriting settings."
             }
