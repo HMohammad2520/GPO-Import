@@ -1,3 +1,7 @@
 .git
 ADMX
 Backup
+
+.gitignore
+
+test_*.*

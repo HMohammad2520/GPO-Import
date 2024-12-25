@@ -1,7 +1,7 @@
 # Get the current script's directory
 $ScriptDir = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition
 
-# Define the path to the backup folder relative to the script's directory and Log file
+# Define the path to the backup folder and log file
 $BackupFolder = Join-Path -Path $ScriptDir -ChildPath "Backup"
 $LogFile = Join-Path -Path $ScriptDir -ChildPath "GPO_Import.log"
 
@@ -17,18 +17,21 @@ if (-not (Get-Module -ListAvailable -Name GroupPolicy)) {
 $DomainName = $env:DOMAINNAME
 
 # Check for Domain name ENV
-if (-not $DomainName){
-    Write-Host "The ENV for DOMAINNAME is not defined or is empty, please provide the ENV"
+if (-not $DomainName) {
+    Write-Error "The ENV for DOMAINNAME is not defined or is empty. Please provide the ENV."
     exit
 }
 
-# Lopping for each GPO Object
+# Loop through each GPO backup directory
 foreach ($BackupDir in $BackupDirs) {
     Write-Output "Processing backup directory: $($BackupDir.FullName)"
     
     # Path to the Backup.xml file
     $XMLPath = Join-Path -Path $BackupDir.FullName -ChildPath "Backup.xml"
     
+    # Path to the GPO.cmt file in the backup
+    $GPOCommentPath = Join-Path -Path $BackupDir.FullName -ChildPath "DomainSysvol\GPO\GPO.cmt"
+
     if (Test-Path -Path $XMLPath) {
         try {
             # Load the XML content
@@ -42,13 +45,13 @@ foreach ($BackupDir in $BackupDirs) {
                 continue
             }
 
+            Write-Output "----------------------------------------"
             Write-Output "GPO Name: $GPOName"
 
-            # Retrieve and parse GPO comment (Description property)
-            $GPOComment = $ExistingGPO.Description
-
-            if ($GPOComment) {
+            # Check if GPO.cmt file exists in the backup
+            if (Test-Path -Path $GPOCommentPath) {
                 try {
+                    $GPOComment = Get-Content -Path $GPOCommentPath -Raw -Encoding UTF8
                     $CommentContent = $GPOComment | ConvertFrom-Json
 
                     # Validate 'importable' flag
@@ -63,10 +66,10 @@ foreach ($BackupDir in $BackupDirs) {
                             Write-Warning "GPO '$GPOName' is intended for domain '$($CommentContent.domain)', current domain is '$DomainName'. Skipping..."
                             continue
                         } else {
-                            Write-Output "This Gpo is Specified to this domain '$GPOName'. Applying the GPO..."
+                            Write-Output "This GPO is specified for this domain '$DomainName'. Applying the GPO..."
                         }
                     } else {
-                        Write-Output "This GPO is Global '$GPOName'. Applying the GPO..."
+                        Write-Output "This GPO is global '$GPOName'. Applying the GPO..."
                     }
 
                     # Information About GPO
@@ -78,7 +81,7 @@ foreach ($BackupDir in $BackupDirs) {
 
                     if (-not $ExistingGPO) {
                         # Create a new GPO with the specified name if it does not exist
-                        Write-Warning "GPO '$GPOName' does not exist in Management console. Creating as new GPO..."
+                        Write-Warning "GPO '$GPOName' does not exist in Management Console. Creating as new GPO..."
                         New-GPO -Name $GPOName -ErrorAction Stop
                     } else {
                         Write-Host "GPO with name $GPOName already exists. Overwriting settings."
@@ -94,11 +97,12 @@ foreach ($BackupDir in $BackupDirs) {
                     }
 
                 } catch {
-                    Write-Warning "Failed to parse GPO comment for '$GPOName' as JSON. Skipping this GPO..."
+                    Write-Warning "Failed to parse GPO.cmt file for '$GPOName' as JSON. Skipping this GPO..."
+                    Write-Warning "File Path: '$GPOCommentPath' as JSON. Skipping this GPO..."
                     continue
                 }
             } else {
-                Write-Warning "No comment found in GPO '$GPOName'. Skipping GPO import..."
+                Write-Warning "No GPO.cmt file found in backup for GPO '$GPOName'. Skipping GPO import..."
                 continue
             }
 
@@ -110,4 +114,5 @@ foreach ($BackupDir in $BackupDirs) {
     }
 }
 
+Write-Host "----------------------------------------"
 Write-Host "All GPOs processed successfully."
