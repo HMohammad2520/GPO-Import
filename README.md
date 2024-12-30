@@ -1,6 +1,8 @@
 # Group Policy Mass Import
 This repository simplifies the process of importing Group Policy Objects (GPO) from one Active Directory forest to another.
 
+> Tested on Microsoft Active Directory 2016.
+
 ## JSON Configuration
 - The script uses a JSON configuration file for managing GPO imports.
 - Example JSON structure:
@@ -24,13 +26,11 @@ This repository simplifies the process of importing Group Policy Objects (GPO) f
 - **recommended**: Not Implemented yet.
 - **deprecated**: Not Implemented yet.
 
-
 ### Environment Variable
 Before running the script, ensure the environment variable is set:
 ```
 DOMAINNAME = 'your domain'
 ```
-
 
 ## Ho to import backup in mass
 - Add the JSON-formatted configuration to your GPO objects in the Comment section.
