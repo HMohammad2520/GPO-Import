@@ -20,7 +20,7 @@ This repository simplifies the process of importing Group Policy Objects (GPO) f
 ### Key Parameters:
 - **admx**: Not Implemented yet.
 - **importable**: If set to false, the policy will not be imported.
-- **domain**: Specifies the target domain for the import. empty string mean import to every domain.
+- **domain**: Specifies the target domain for the import. empty string will bypass the domain check.
 - **description**: Provides details about the policy.
 - **actions**: Lists specific actions the policy enforces.
 - **recommended**: Not Implemented yet.
